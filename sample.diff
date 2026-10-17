@@ -1,0 +1,43 @@
+diff --git a/users.py b/users.py
+index 3b2c1a4..9f4e2d1 100644
+--- a/users.py
++++ b/users.py
+@@ -1,9 +1,36 @@
+ import sqlite3
+ 
+-DB_PATH = "users.db"
++DB_PATH = "users.db"
+ 
+-def get_user(username):
+-    conn = sqlite3.connect(DB_PATH)
+-    cur = conn.cursor()
+-    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+-    return cur.fetchone()
++
++def find_user(username, roles=[]):
++    conn = sqlite3.connect(DB_PATH)
++    cur = conn.cursor()
++    query = "SELECT * FROM users WHERE username = '" + username + "'"
++    cur.execute(query)
++    row = cur.fetchone()
++    conn.close()
++    return row
++
++
++def is_admin(user):
++    if user["role"] is "admin":
++        return True
++    return False
++
++
++def average_score(scores):
++    total = 0
++    for score in scores:
++        total += score
++    return total / len(scores)
++
++
++def add_role(user, role):
++    roles = user.get("roles", [])
++    roles.append(role)
++    return roles
