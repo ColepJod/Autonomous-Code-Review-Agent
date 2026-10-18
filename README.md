@@ -40,6 +40,7 @@ autonomous-code-review-agent/
 ├── code_review_agent/
 │   ├── __init__.py
 │   └── graph.py
+├── app.py
 ├── sample.diff
 ├── review.py
 ├── requirements.txt
@@ -118,6 +119,24 @@ Options:
 
 - `-o, --output FILE` – write the report to a file instead of stdout.
 - `--model NAME` – override the model from `.env` for a single run.
+
+## Run the web UI
+
+A small Streamlit UI is included. It lets you **paste a code snippet** or
+**upload a `.py` / `.diff` file**, then shows the review in the page (with a
+download button for the Markdown report).
+
+```bash
+streamlit run app.py
+```
+
+Streamlit prints a local URL (usually `http://localhost:8501`) and opens it in
+your browser. Paste or upload your code, then click **Review code**. The
+optional **Model** field in the sidebar overrides `LLM_MODEL` for that run.
+
+The UI uses the exact same read-only workflow as the CLI, so the same safety
+guarantees apply: nothing is executed, nothing is modified, and every finding
+is labeled as an AI suggestion.
 
 ### Expected output
 

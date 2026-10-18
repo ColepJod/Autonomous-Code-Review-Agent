@@ -57,6 +57,13 @@ def read_input(path: str) -> str:
 
 
 def main() -> int:
+    # Windows consoles may default to a legacy code page (e.g. cp1252) that
+    # cannot encode characters the model returns. Force UTF-8 output.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
     load_dotenv()
     args = parse_args()
 
