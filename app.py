@@ -41,9 +41,18 @@ CUSTOM_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="st-"], [class*="css"] {
+/* Apply the UI font WITHOUT touching Streamlit's icon font. A selector like
+   [class*="st-"] also matches icon elements and breaks the Material Symbols
+   ligatures (icons then render as text such as "uploadupload"). */
+html, body, .stApp {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 16px;
+}
+
+/* Belt-and-suspenders: keep Material icons using their own font. */
+[data-testid="stIconMaterial"],
+span[class*="material-symbols"],
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
 }
 
 .hero-title {
