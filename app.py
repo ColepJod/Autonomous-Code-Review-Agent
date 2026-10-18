@@ -15,6 +15,20 @@ from dotenv import load_dotenv
 
 from code_review_agent import MissingAPIKeyError, get_llm, review_diff
 
+
+def _strip_report_title(report: str) -> str:
+    """Drop the report's own '# Code Review Report' H1 for a cleaner UI.
+
+    The page already shows a 'Review report' heading, so repeating the title
+    would just add an oversized, redundant line. The downloaded file keeps the
+    full report including its title.
+    """
+    lines = report.splitlines()
+    if lines and lines[0].strip().startswith("# Code Review Report"):
+        return "\n".join(lines[1:]).lstrip("\n")
+    return report
+
+
 st.set_page_config(
     page_title="Autonomous Code Review Agent",
     page_icon="🔍",
@@ -23,11 +37,57 @@ st.set_page_config(
 
 load_dotenv()
 
-st.title("🔍 Autonomous Code Review Agent")
-st.caption(
-    "Paste a code snippet or upload a `.py` / `.diff` file. "
-    "Findings are AI-generated suggestions that require human verification — "
-    "no code is executed or modified."
+CUSTOM_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+html, body, [class*="st-"], [class*="css"] {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+}
+
+.hero-title {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0;
+    background: linear-gradient(90deg, #4f8cff 0%, #a855f7 55%, #ec4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+    color: #9aa0a6;
+    font-size: 0.95rem;
+    margin-top: 0.4rem;
+    max-width: 58rem;
+}
+
+.hero-sub code {
+    color: #c7d2fe;
+}
+
+/* Keep markdown headings inside the report reasonably sized */
+.stMarkdown h1 { font-size: 1.7rem; font-weight: 650; margin-top: 0.4rem; }
+.stMarkdown h2 { font-size: 1.3rem; font-weight: 650; margin-top: 1rem; }
+.stMarkdown h3 { font-size: 1.05rem; font-weight: 600; margin-top: 0.9rem; }
+.stMarkdown p, .stMarkdown li { font-size: 0.96rem; }
+</style>
+"""
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="hero-title">Autonomous Code Review Agent</div>',
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<div class="hero-sub">Paste a code snippet or upload a <code>.py</code> / '
+    '<code>.diff</code> file. Findings are AI-generated suggestions that require '
+    'human verification — no code is executed or modified.</div>',
+    unsafe_allow_html=True,
 )
 
 with st.sidebar:
@@ -36,10 +96,6 @@ with st.sidebar:
         "Model (optional)",
         value="",
         help="Leave blank to use LLM_MODEL from your .env file.",
-    )
-    st.markdown(
-        "Configure the provider in your **`.env`** file:\n\n"
-        "```\nLLM_API_KEY=...\nLLM_BASE_URL=...\nLLM_MODEL=...\n```"
     )
 
 tab_paste, tab_upload = st.tabs(["Paste snippet", "Upload file"])
@@ -83,11 +139,14 @@ if review_clicked:
 
 if st.session_state.get("report"):
     st.divider()
-    st.subheader("Review report")
-    st.markdown(st.session_state["report"])
-    st.download_button(
-        "Download report (review.md)",
-        data=st.session_state["report"],
-        file_name="review.md",
-        mime="text/markdown",
-    )
+    header_col, action_col = st.columns([4, 1], vertical_alignment="center")
+    header_col.subheader("Review report")
+    with action_col:
+        st.download_button(
+            "Download review.md",
+            data=st.session_state["report"],
+            file_name="review.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+    st.markdown(_strip_report_title(st.session_state["report"]))
